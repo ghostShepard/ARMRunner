@@ -27,6 +27,33 @@ namespace PowerShellRunner
         public Form1()
         {
             InitializeComponent();
+
+            // 应用现代化样式
+            ModernUIHelper.ApplyModernStyle(this);
+
+            // 自定义文本框为黑色背景
+            CustomizeSpecificControls();
+        }
+
+        private void CustomizeSpecificControls()
+        {
+            // Script Content 文本框 - 黑色背景
+            if (txtScriptContent != null)
+            {
+                txtScriptContent.BackColor = Color.Black;
+                txtScriptContent.ForeColor = Color.FromArgb(226, 232, 240); // 浅灰色文字
+                txtScriptContent.Font = new Font("Consolas", 10F);
+                txtScriptContent.BorderStyle = BorderStyle.None;
+            }
+
+            // Output Log 文本框 - 黑色背景 + 绿色终端风格
+            if (logOutput != null)
+            {
+                logOutput.BackColor = Color.Black;
+                logOutput.ForeColor = Color.FromArgb(34, 197, 94); // 绿色终端文字
+                logOutput.Font = new Font("Consolas", 9.5F);
+                logOutput.BorderStyle = BorderStyle.None;
+            }
         }
 
         /// <summary>

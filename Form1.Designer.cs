@@ -46,6 +46,8 @@
             button4 = new Button();
             button5 = new Button();
             button6 = new Button();
+            btnViewHistory = new Button();
+            btnLoadFromCache = new Button();
             menuStrip1 = new MenuStrip();
             fileToolStripMenuItem = new ToolStripMenuItem();
             cleanToolStripMenuItem = new ToolStripMenuItem();
@@ -217,6 +219,36 @@
             button5.UseVisualStyleBackColor = true;
             button5.Click += button5_Click;
             // 
+            // btnViewHistory - History Button
+            // 
+            btnViewHistory.BackColor = System.Drawing.Color.FromArgb(37, 99, 235);
+            btnViewHistory.FlatStyle = FlatStyle.Flat;
+            btnViewHistory.FlatAppearance.BorderSize = 0;
+            btnViewHistory.ForeColor = System.Drawing.Color.White;
+            btnViewHistory.Font = new System.Drawing.Font("Segoe UI Semibold", 10F);
+            btnViewHistory.Text = "📜 History";
+            btnViewHistory.Location = new Point(1018, 100);
+            btnViewHistory.Name = "btnViewHistory";
+            btnViewHistory.Size = new Size(110, 40);
+            btnViewHistory.TabIndex = 24;
+            btnViewHistory.Cursor = System.Windows.Forms.Cursors.Hand;
+            btnViewHistory.Click += btnViewHistory_Click;
+            // 
+            // btnLoadFromCache - Load Cache Button
+            // 
+            btnLoadFromCache.BackColor = System.Drawing.Color.FromArgb(168, 85, 247);
+            btnLoadFromCache.FlatStyle = FlatStyle.Flat;
+            btnLoadFromCache.FlatAppearance.BorderSize = 0;
+            btnLoadFromCache.ForeColor = System.Drawing.Color.White;
+            btnLoadFromCache.Font = new System.Drawing.Font("Segoe UI Semibold", 10F);
+            btnLoadFromCache.Text = "⚡ Load Cache";
+            btnLoadFromCache.Location = new Point(1137, 100);
+            btnLoadFromCache.Name = "btnLoadFromCache";
+            btnLoadFromCache.Size = new Size(120, 40);
+            btnLoadFromCache.TabIndex = 25;
+            btnLoadFromCache.Cursor = System.Windows.Forms.Cursors.Hand;
+            btnLoadFromCache.Click += btnLoadFromCache_Click;
+            // 
             // button6
             // 
             button6.Location = new Point(1114, 501);
@@ -265,6 +297,8 @@
             AutoScaleDimensions = new SizeF(7F, 17F);
             AutoScaleMode = AutoScaleMode.Font;
             ClientSize = new Size(1292, 808);
+            Controls.Add(btnLoadFromCache);
+            Controls.Add(btnViewHistory);
             Controls.Add(button7);
             Controls.Add(button6);
             Controls.Add(button5);
@@ -313,6 +347,8 @@
         private Button button4;
         private Button button5;
         private Button button6;
+        private Button btnViewHistory;
+        private Button btnLoadFromCache;
         private MenuStrip menuStrip1;
         private ToolStripMenuItem fileToolStripMenuItem;
         private ToolStripMenuItem cleanToolStripMenuItem;

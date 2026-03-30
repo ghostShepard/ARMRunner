@@ -21,6 +21,8 @@ namespace PowerShellRunner
 
         private List<ScriptResource> scriptResources = new List<ScriptResource>(); // 存储脚本资源的列表
 
+        private ScriptCacheService _scriptCache;
+
         /// <summary>
         /// Form1 类的构造函数。
         /// </summary>
@@ -33,6 +35,30 @@ namespace PowerShellRunner
 
             // 自定义文本框为黑色背景
             CustomizeSpecificControls();
+
+            _ = InitializeRedis();
+        }
+
+        private async Task InitializeRedis()
+        {
+            try
+            {
+                bool connected = await RedisManager.Instance.ConnectAsync("localhost:6379");
+
+                if (connected)
+                {
+                    _scriptCache = new ScriptCacheService();
+                    AppendLogSafe("✅ Redis connected - Cache enabled\n");
+                }
+                else
+                {
+                    AppendLogSafe("⚠️ Redis not available - Running without cache\n");
+                }
+            }
+            catch (Exception ex)
+            {
+                AppendLogSafe($"⚠️ Redis initialization failed: {ex.Message}\n");
+            }
         }
 
         private void CustomizeSpecificControls()
@@ -146,50 +172,136 @@ namespace PowerShellRunner
         /// <summary>
         /// 按钮点击事件处理方法，用于选择并加载脚本文件。
         /// </summary>
-        private void button1_Click_1(object sender, EventArgs e)
+        private async void button1_Click_1(object sender, EventArgs e)
         {
             using (OpenFileDialog openFileDialog = new OpenFileDialog())
             {
-                openFileDialog.Title = "Select scripts"; // 对话框标题
-                openFileDialog.Filter = "PowerShell 脚本|*.ps1|JSON 文件|*.json"; // 文件过滤器
-                openFileDialog.InitialDirectory = Environment.GetFolderPath(Environment.SpecialFolder.Desktop); // 初始目录
-                openFileDialog.Multiselect = true; // 允许选择多个文件
+                openFileDialog.Title = "Select scripts";
+                openFileDialog.Filter = "PowerShell 脚本|*.ps1|JSON 文件|*.json";
+                openFileDialog.InitialDirectory = Environment.GetFolderPath(Environment.SpecialFolder.Desktop);
+                openFileDialog.Multiselect = true;
 
                 if (openFileDialog.ShowDialog() == DialogResult.OK)
                 {
-                    string selectedFile = openFileDialog.FileName; // 获取选中的文件路径
+                    string selectedFile = openFileDialog.FileName;
                     string filePath = openFileDialog.FileName;
-                    string fileExtension = Path.GetExtension(filePath).ToLower(); // 获取文件扩展名
-                    string content = File.ReadAllText(filePath); // 读取文件内容
-
-                    // string[] allowedExtensions = { ".json", ".ps1" }; // 已定义但未使用
+                    string fileExtension = Path.GetExtension(filePath).ToLower();
+                    string fileName = Path.GetFileName(filePath);
+                    string content = File.ReadAllText(filePath);
 
                     if (fileExtension == ".json")
                     {
-                        // 解析 JSON 内容
                         dynamic jsonObject = JsonConvert.DeserializeObject(content);
-
-                        // 在文本框中显示解析后的 JSON 数据（格式化后）
                         txtScriptContent.Text = JsonConvert.SerializeObject(jsonObject, Formatting.Indented);
                     }
 
                     if (fileExtension == ".ps1")
                     {
-                        txtScriptContent.Text = ParsePowerShellScript(content); // 解析 PowerShell 脚本
+                        txtScriptContent.Text = ParsePowerShellScript(content);
                     }
 
-                    commandString = filePath; // 设置命令字符串为文件路径
+                    commandString = filePath;
+                    string resourceId = textBox1.Text;
 
-                    string resourceId = textBox1.Text; // 获取资源ID
+                    // ✨ 保存到 Redis 历史记录和缓存
+                    if (_scriptCache != null && _scriptCache.IsConnected)
+                    {
+                        // 保存到历史记录
+                        bool historySaved = await _scriptCache.SaveToHistoryAsync(
+                            resourceId,
+                            txtScriptContent.Text,
+                            fileName);
 
-                    // 将资源 ID 和脚本内容添加到列表中
+                        // 缓存脚本（1小时过期）
+                        bool cached = await _scriptCache.CacheScriptAsync(
+                            resourceId,
+                            txtScriptContent.Text,
+                            60);
+
+                        if (historySaved && cached)
+                        {
+                            AppendLogSafe($"💾 Script saved to history and cached\n");
+                        }
+                    }
+
                     scriptResources.Add(new ScriptResource
                     {
-                        Id = ++currentMaxId, // ID 自增
+                        Id = ++currentMaxId,
                         ResourceId = resourceId,
                         ScriptContent = txtScriptContent.Text
                     });
                 }
+            }
+        }
+
+        private async void btnViewHistory_Click(object sender, EventArgs e)
+        {
+            if (_scriptCache == null || !_scriptCache.IsConnected)
+            {
+                MessageBox.Show(
+                    "Redis is not connected!\n\nHistory feature requires Redis.",
+                    "Redis Not Available",
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Warning);
+                return;
+            }
+
+            var history = await _scriptCache.GetHistoryAsync(20);
+
+            if (history.Count == 0)
+            {
+                MessageBox.Show(
+                    "No script history found.",
+                    "History",
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Information);
+                return;
+            }
+
+            // 创建并显示历史记录窗口
+            FormScriptHistory historyForm = new FormScriptHistory(history, this);
+            historyForm.ShowDialog();
+        }
+
+        /// <summary>
+        /// 从历史记录加载脚本（由 FormScriptHistory 调用）
+        /// </summary>
+        public void LoadScriptFromHistory(ScriptHistoryItem item)
+        {
+            txtScriptContent.Text = item.ScriptContent;
+            textBox1.Text = item.ResourceId;
+            AppendLogSafe($"📜 Loaded from history: {item.FileName}\n");
+        }
+
+        private async void btnLoadFromCache_Click(object sender, EventArgs e)
+        {
+            if (_scriptCache == null || !_scriptCache.IsConnected)
+            {
+                MessageBox.Show("Redis is not connected!", "Error", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return;
+            }
+
+            string resourceId = textBox1.Text;
+            if (string.IsNullOrWhiteSpace(resourceId))
+            {
+                MessageBox.Show("Please enter a Resource ID first!", "Error", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return;
+            }
+
+            string cachedScript = await _scriptCache.GetCachedScriptAsync(resourceId);
+
+            if (!string.IsNullOrEmpty(cachedScript))
+            {
+                txtScriptContent.Text = cachedScript;
+                AppendLogSafe($"⚡ Loaded from cache: {resourceId}\n");
+            }
+            else
+            {
+                MessageBox.Show(
+                    $"No cached script found for:\n{resourceId}",
+                    "Not Found",
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Information);
             }
         }
 
@@ -563,5 +675,6 @@ namespace PowerShellRunner
             Form2 form2 = new Form2(scriptResources); // 创建 Form2 实例并传入脚本资源列表
             form2.Show(); // 显示 Form2
         }
+
     }
 }

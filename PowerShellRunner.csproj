@@ -15,7 +15,8 @@
 
   <ItemGroup>
     <PackageReference Include="Cake.Powershell" Version="4.0.0" />
-    <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.4" />
+    <PackageReference Include="StackExchange.Redis" Version="2.12.4" />
   </ItemGroup>
 
 </Project>

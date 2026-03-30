@@ -22,6 +22,20 @@ namespace PowerShellRunner
                 sr.ResourceId,
                 sr.ScriptContent
             }).ToList();
+
+            CustomizeSpecificControls();
+        }
+
+        private void CustomizeSpecificControls()
+        {
+            // Script Content 文本框 - 黑色背景
+            if (dataGridView1 != null)
+            {
+                dataGridView1.BackColor = Color.Black;
+                dataGridView1.ForeColor = Color.FromArgb(226, 232, 240); // 浅灰色文字
+                dataGridView1.Font = new Font("Consolas", 10F);
+                dataGridView1.BorderStyle = BorderStyle.None;
+            }
         }
 
 

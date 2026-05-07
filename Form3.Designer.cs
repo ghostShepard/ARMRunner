@@ -74,7 +74,7 @@
             btnSave.FlatStyle = FlatStyle.Flat;
             btnSave.Font = new Font("Segoe UI Semibold", 10F);
             btnSave.ForeColor = Color.White;
-            btnSave.Location = new Point(4, 53);
+            btnSave.Location = new Point(4, 60);
             btnSave.Name = "btnSave";
             btnSave.Size = new Size(105, 42);
             btnSave.TabIndex = 0;
@@ -90,11 +90,11 @@
             btnCancel.FlatStyle = FlatStyle.Flat;
             btnCancel.Font = new Font("Segoe UI Semibold", 10F);
             btnCancel.ForeColor = Color.White;
-            btnCancel.Location = new Point(131, 53);
+            btnCancel.Location = new Point(114, 60);
             btnCancel.Name = "btnCancel";
             btnCancel.Size = new Size(105, 42);
             btnCancel.TabIndex = 1;
-            btnCancel.Text = "Cancel";
+            btnCancel.Text = "❌ Cancel";
             btnCancel.UseVisualStyleBackColor = false;
             btnCancel.Click += btnCancel_Click;
             // 

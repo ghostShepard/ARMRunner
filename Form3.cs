@@ -53,12 +53,6 @@ namespace PowerShellRunner
                 txtAIInput.Size = new Size(availableWidth - 110, 80);
                 btnAISend.Location = new Point(panelAI.ClientSize.Width - 110, panelAI.ClientSize.Height - 90);
             }
-
-            if (btnSave != null && btnCancel != null)
-            {
-                btnSave.Location = new Point(this.ClientSize.Width - 264, this.ClientSize.Height - 52);
-                btnCancel.Location = new Point(this.ClientSize.Width - 132, this.ClientSize.Height - 52);
-            }
         }
 
         // 格式化脚本内容
